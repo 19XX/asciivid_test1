@@ -5,66 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASCII Video</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        /* Center the ASCII video */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
+            color: white;
+            font-family: monospace;
+            text-align: center;
+        }
+        #asciiContainer {
+            line-height: 1em;
+        }
+    </style>
 </head>
 <body>
     <div id="asciiContainer"></div>
 
     <script>
-        const density = "Ñ@#W$9876543210?!abc;:+=-,._                                     ";
+        const density = "Ñ@#W$9876543210?!abc;:+=-,._ ";
         let video;
         let asciiDiv;
+        let videoWidth, videoHeight;
 
         function setup() {
             noCanvas();
-            asciiDiv = createDiv();
+            asciiDiv = createDiv().id("asciiContainer");
             
             // Load video from GitHub
             video = createVideo("https://raw.githubusercontent.com/19xx/asciivid_test1/main/asclowres.mp4", videoLoaded);
-            video.size(64, 64);
-            video.hide(); // Hide original video
+            video.hide(); // Hide actual video
             
-            // Optimize performance for pixel reading
-            let canvas = document.createElement('canvas');
-            let ctx = canvas.getContext('2d', { willReadFrequently: true });
+            // Preserve aspect ratio dynamically
+            video.elt.onloadedmetadata = () => {
+                let scaleFactor = 0.25;  // Adjust size factor (smaller value = smaller ASCII)
+                videoWidth = Math.floor(video.elt.videoWidth * scaleFactor);
+                videoHeight = Math.floor(video.elt.videoHeight * scaleFactor);
+                console.log(`Original Size: ${video.elt.videoWidth}x${video.elt.videoHeight}, Scaled to: ${videoWidth}x${videoHeight}`);
+                requestAnimationFrame(draw);
+            };
         }
 
         function videoLoaded() {
             video.volume(0); // Mute video
+            video.loop(); // Ensure looping
             console.log("Video Loaded!");
 
-            // Require user interaction for autoplay
-            video.mousePressed(() => {
-                video.play();
-            });
-
-            // Attempt autoplay with delay (if allowed)
-            setTimeout(() => {
-                video.play().catch(error => console.log("Autoplay blocked:", error));
-            }, 1000);
+            // Ensure autoplay works in all browsers
+            userStartAudio();
+            video.play().catch(error => console.log("Autoplay blocked:", error));
         }
 
         function draw() {
-            if (video.loadedmetadata) {
-                video.loadPixels();
-                let asciiImage = "";
+            if (!video.loadedmetadata) return;
+            video.loadPixels();
+            let asciiImage = "";
 
-                for (let j = 0; j < video.height; j++) {
-                    for (let i = 0; i < video.width; i++) {
-                        const pixelIndex = (i + j * video.width) * 4;
-                        const r = video.pixels[pixelIndex + 0];
-                        const g = video.pixels[pixelIndex + 1];
-                        const b = video.pixels[pixelIndex + 2];
-                        const avg = (r + g + b) / 3;
-                        const len = density.length;
-                        const charIndex = Math.floor(map(avg, 0, 255, 0, len - 1));
-                        const c = density.charAt(charIndex);
-                        asciiImage += c === " " ? "&nbsp;" : c;
-                    }
-                    asciiImage += "<br/>";
+            for (let j = 0; j < videoHeight; j++) {
+                for (let i = 0; i < videoWidth; i++) {
+                    const pixelIndex = (i + j * videoWidth) * 4;
+                    const r = video.pixels[pixelIndex + 0];
+                    const g = video.pixels[pixelIndex + 1];
+                    const b = video.pixels[pixelIndex + 2];
+                    const avg = (r + g + b) / 3;
+                    const len = density.length;
+                    const charIndex = Math.floor(map(avg, 0, 255, 0, len - 1));
+                    const c = density.charAt(charIndex);
+                    asciiImage += c === " " ? "&nbsp;" : c;
                 }
-                
-                asciiDiv.html(asciiImage);
+                asciiImage += "<br/>";
             }
+            
+            asciiDiv.html(asciiImage);
+
+            // Keep updating the ASCII video
+            requestAnimationFrame(draw);
         }
     </script>
 </body>
