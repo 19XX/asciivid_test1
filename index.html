@@ -54,8 +54,7 @@
             video.loop(); // Ensure looping
             console.log("Video Loaded!");
 
-            // Ensure autoplay works in all browsers
-            userStartAudio();
+            // Start playback (removed userStartAudio())
             video.play().catch(error => console.log("Autoplay blocked:", error));
         }
 
