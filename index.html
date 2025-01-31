@@ -18,16 +18,29 @@
             noCanvas();
             asciiDiv = createDiv();
             
-            // Correct GitHub raw URL
+            // Load video from GitHub
             video = createVideo("https://raw.githubusercontent.com/19xx/asciivid_test1/main/asclowres.mp4", videoLoaded);
             video.size(64, 48);
             video.hide(); // Hide original video
+            
+            // Optimize performance for pixel reading
+            let canvas = document.createElement('canvas');
+            let ctx = canvas.getContext('2d', { willReadFrequently: true });
         }
 
         function videoLoaded() {
-            video.loop();
-            video.volume(0); // Mute the video
+            video.volume(0); // Mute video
             console.log("Video Loaded!");
+
+            // Require user interaction for autoplay
+            video.mousePressed(() => {
+                video.play();
+            });
+
+            // Attempt autoplay with delay (if allowed)
+            setTimeout(() => {
+                video.play().catch(error => console.log("Autoplay blocked:", error));
+            }, 1000);
         }
 
         function draw() {
