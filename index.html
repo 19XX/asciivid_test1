@@ -18,15 +18,16 @@
             noCanvas();
             asciiDiv = createDiv();
             
-            // Load video from GitHub repository
-            video = createVideo("https://github.com/19XX/asciivid_test1/blob/main/asclowres.mp4", videoLoaded);
+            // Correct GitHub raw URL
+            video = createVideo("https://raw.githubusercontent.com/19xx/asciivid_test1/main/asclowres.mp4", videoLoaded);
             video.size(64, 48);
-            video.hide(); // Hide actual video
+            video.hide(); // Hide original video
         }
 
         function videoLoaded() {
-            video.loop(); // Ensure video is playing in a loop
-            video.volume(0); // Mute the video to prevent any sound
+            video.loop();
+            video.volume(0); // Mute the video
+            console.log("Video Loaded!");
         }
 
         function draw() {
